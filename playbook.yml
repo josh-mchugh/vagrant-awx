@@ -1,0 +1,44 @@
+---
+
+  - name: AWX Playbook
+    hosts: all
+    tasks:
+
+      - name: Get AWX repository
+        git:
+          repo: 'https://github.com/ansible/awx.git'
+          dest: ~/awx
+
+      - name: Docker key repository
+        apt_key:
+          url: https://download.docker.com/linux/ubuntu/gpg
+          state: present
+
+      - name: Docker registry is available
+        apt_repository:
+          repo: 'deb https://download.docker.com/linux/ubuntu bionic stable'
+          state: present
+
+      - name: Docker dependencies are installed
+        apt:
+          name: docker-ce
+          update_cache: yes
+
+      - service:
+          name: docker
+          state: restarted
+
+      - name: Install python pip
+        apt:
+          name: python3-pip
+          state: present
+          install_recommends: yes
+
+      - name: Install docker-compose python module
+        pip:
+          name: docker-compose
+
+      - name: Run AWX Ansible playbook
+        command:
+          cmd: ansible-playbook -i inventory install.yml
+          chdir: ~/awx/installer
